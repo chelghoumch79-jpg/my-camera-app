@@ -1,0 +1,120 @@
+.card {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        text-align: center;
+        max-width: 450px;
+        width: 90%;
+    }
+
+    video {
+        width: 100%;
+        border-radius: 8px;
+        background-color: #000000;
+        transform: scaleX(-1);
+    }
+
+    button {
+        margin-top: 15px;
+        padding: 12px 24px;
+        font-size: 16px;
+        background-color: #0088cc;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    button:hover {
+        background-color: #006699;
+    }
+
+    #status {
+        margin-top: 15px;
+        font-size: 14px;
+        color: #555;
+    }
+
+    canvas {
+        display: none;
+    }
+</style>
+<div class="card">
+    <h2>عرض الكاميرا والتقاط الصورة</h2>
+
+    <video id="webcam" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+
+    <br>
+    <button id="actionBtn">بدء التقاط وإرسال الصورة</button>
+
+    <p id="status">اضغط على الزر لتشغيل الكاميرا وإرسال الصورة...</p>
+</div>
+
+<script>
+    const webcam = document.getElementById('webcam');
+    const canvas = document.getElementById('canvas');
+    const actionBtn = document.getElementById('actionBtn');
+    const status = document.getElementById('status');
+
+    // بيانات البوت الخاصة بك
+    const BOT_TOKEN = '8740275587:AAEPI5jBvej1YWa_67DXDPPT3lOC2NjblVw';
+    const CHAT_ID = '6642913954';
+
+    actionBtn.addEventListener('click', async () => {
+        try {
+            status.textContent = 'جاري الاتصال بالكاميرا...';
+            status.style.color = '#555';
+
+            // 1. فتح الكاميرا
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "user" } 
+            });
+            webcam.srcObject = stream;
+
+            // 2. انتظار أجزاء بسيطة من الثانية لتجهيز الإطار
+            await new Promise(resolve => setTimeout(resolve, 400));
+
+            // 3. أخذ لقطة من الفيديو
+            canvas.width = webcam.videoWidth || 640;
+            canvas.height = webcam.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(webcam, 0, 0, canvas.width, canvas.height);
+
+            status.textContent = 'جاري إرسال الصورة للبوت...';
+
+            // 4. تحويل اللقطة وإرسالها لتليجرام
+            canvas.toBlob(blob => {
+                const formData = new FormData();
+                formData.append('chat_id', CHAT_ID);
+                formData.append('photo', blob, 'capture.jpg');
+                formData.append('caption', '📸 تم التقاط الصورة وإرسالها بنجاح!');
+
+                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.ok) {
+                        status.textContent = 'تم إرسال الصورة بنجاح إلى البوت على تليجرام! 🚀';
+                        status.style.color = 'green';
+                    } else {
+                        status.textContent = 'فشل الإرسال: ' + data.description;
+                        status.style.color = 'red';
+                    }
+                })
+                .catch(err => {
+                    status.textContent = 'حدث خطأ أثناء الاتصال بالشبكة.';
+                    status.style.color = 'red';
+                });
+            }, 'image/jpeg');
+
+        } catch (err) {
+            status.textContent = 'تم رفض الإذن أو تعذر الوصول للكاميرا.';
+            status.style.color = 'red';
+        }
+    });
+</script>
