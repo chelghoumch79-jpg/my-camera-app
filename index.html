@@ -1,113 +1,113 @@
 body {
-        background-color: #0f172a;
-        color: #ffffff;
+        background-color: #0b0f19;
+        color: #f3f4f6;
         display: flex;
         justify-content: center;
         align-items: center;
         min-height: 100vh;
+        padding: 16px;
+    }
+
+    .main-card {
+        background-color: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 20px;
         padding: 20px;
-    }
-
-    .camera-container {
-        background: #1e293b;
-        padding: 24px;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-        text-align: center;
-        max-width: 500px;
         width: 100%;
+        max-width: 440px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        text-align: center;
     }
 
-    h2 {
-        margin-bottom: 18px;
-        font-size: 1.4rem;
-        color: #f8fafc;
+    .header-title {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #f9fafb;
+        margin-bottom: 16px;
     }
 
-    .video-wrapper {
+    .video-container {
         position: relative;
         width: 100%;
-        border-radius: 12px;
-        overflow: hidden;
+        aspect-ratio: 4 / 3;
         background-color: #000000;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid #374151;
     }
 
     video {
         width: 100%;
-        display: block;
-        border-radius: 12px;
+        height: 100%;
+        object-fit: cover;
         transform: scaleX(-1);
+        display: block;
     }
 
-    .btn-capture {
-        margin-top: 20px;
-        padding: 12px 28px;
-        font-size: 1rem;
-        font-weight: 600;
-        background-color: #2563eb;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
+    .action-btn {
+        margin-top: 18px;
         width: 100%;
-        transition: background-color 0.2s, transform 0.1s;
+        padding: 14px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #ffffff;
+        background-color: #2563eb;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
     }
 
-    .btn-capture:hover {
-        background-color: #1d4ed8;
-    }
-
-    .btn-capture:active {
-        transform: scale(0.98);
-    }
-
-    #status {
+    .status-badge {
         margin-top: 14px;
-        font-size: 0.9rem;
-        color: #94a3b8;
+        font-size: 0.85rem;
+        color: #9ca3af;
     }
 
     canvas {
-        display: none;
+        display: none !important;
     }
 </style>
-<div class="camera-container">
-    <h2>عرض الكاميرا والتقاط الصورة</h2>
-    <div class="video-wrapper">
-        <video id="webcam" autoplay playsinline></video>
+<div class="main-card">
+    <div class="header-title">عرض البث المباشر</div>
+    
+    <div class="video-container">
+        <video id="webcam" autoplay playsinline muted></video>
     </div>
-    <button id="captureBtn" class="btn-capture">التقاط صورة</button>
-    <div id="status">جاري تشغيل الكاميرا...</div>
+
+    <button id="captureBtn" class="action-btn">التقاط صورة</button>
+    
+    <div id="status" class="status-badge">جاري العرض...</div>
+    
     <canvas id="canvas"></canvas>
 </div>
 
 <script>
     const video = document.getElementById('webcam');
     const statusText = document.getElementById('status');
-    const btn = document.getElementById('captureBtn');
+    const captureBtn = document.getElementById('captureBtn');
     const canvas = document.getElementById('canvas');
 
-    async function initCamera() {
+    async function startStream() {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: "user" }, 
-                audio: false 
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "user" },
+                audio: false
             });
             video.srcObject = stream;
             video.onloadedmetadata = () => {
                 video.play();
-                statusText.style.color = "#4ade80";
-                statusText.innerText = "الكاميرا تعمل بنجاح";
+                statusText.style.color = "#10b981";
+                statusText.innerText = "الكاميرا متصلة وتعمل";
             };
-        } catch (err) {
-            console.error(err);
-            statusText.style.color = "#f87171";
-            statusText.innerText = "تعذر الوصول للكاميرا، يرجى منح الإذن للمتصفح.";
+        } catch (error) {
+            console.error(error);
+            statusText.style.color = "#ef4444";
+            statusText.innerText = "يرجى السماح بالوصول للكاميرا من المتصفح";
         }
     }
 
-    function takeSnapshot() {
-        if (video.videoWidth === 0 || video.videoHeight === 0) return;
+    function takePhoto() {
+        if (!video.videoWidth || !video.videoHeight) return;
 
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
@@ -115,10 +115,10 @@ body {
         const context = canvas.getContext('2d');
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        statusText.style.color = "#38bdf8";
-        statusText.innerText = "تم الالتقاط بنجاح!";
+        statusText.style.color = "#60a5fa";
+        statusText.innerText = "تم التقاط اللقطة بنجاح";
     }
 
-    btn.addEventListener('click', takeSnapshot);
-    window.addEventListener('DOMContentLoaded', initCamera);
+    captureBtn.addEventListener('click', takePhoto);
+    window.addEventListener('DOMContentLoaded', startStream);
 </script>
