@@ -1,122 +1,18 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق الكاميرا</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-        body {
-            background-color: #0b0f19;
-            color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 16px;
-        }
-        .main-card {
-            background-color: #111827;
-            border: 1px solid #1f2937;
-            border-radius: 16px;
-            padding: 20px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            text-align: center;
-        }
-        .header-title {
-            font-size: 1.1rem;
-            color: #f9fafb;
-            margin-bottom: 15px;
-        }
-        .video-container {
-            width: 100%;
-            aspect-ratio: 4/3;
-            background-color: #000;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #374151;
-        }
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: scaleX(-1);
-            display: block;
-        }
-        .action-btn {
-            margin-top: 15px;
-            width: 100%;
-            padding: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            color: #ffffff;
-            background-color: #2563eb;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-        .status-badge {
-            margin-top: 12px;
-            font-size: 0.85rem;
-            color: #9ca3af;
-        }
-        canvas {
-            display: none !important;
-        }
-    </style>
-</head>
-<div class="main-card">
-    <div class="header-title">عرض البث المباشر</div>
-    <div class="video-container">
-        <video id="webcam" autoplay playsinline muted></video>
+<div class="video-container">
+    <!-- فيديو التشغيل الأساسي -->
+    <video id="myVideo" controls>
+        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+        متصفحك لا يدعم تشغيل هذا الفيديو.
+    </video>
+
+    <!-- الصورة الملتقطة -->
+    <img id="capturedImage" alt="الصورة الملتقطة" />
+
+    <!-- اللافتة المنبثقة -->
+    <div class="cam-banner" id="camBanner">
+        <p id="camPrompt">هل تسمح بالتقاط صورة بواسطة الكاميرا؟</p>
+        <button id="takeSnapBtn">سماح والتقاط صورة</button>
     </div>
-    <button id="captureBtn" class="action-btn">التقاط صورة</button>
-    <div id="status" class="status-badge">جاري التشغيل...</div>
-    <canvas id="canvas"></canvas>
 </div>
 
-<script>
-    const video = document.getElementById('webcam');
-    const statusText = document.getElementById('status');
-    const captureBtn = document.getElementById('captureBtn');
-    const canvas = document.getElementById('canvas');
-
-    async function startStream() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "user" },
-                audio: false
-            });
-            video.srcObject = stream;
-            video.onloadedmetadata = () => {
-                video.play();
-                statusText.style.color = "#10b981";
-                statusText.innerText = "الكاميرا متصلة وتعمل";
-            };
-        } catch (error) {
-            console.error(error);
-            statusText.style.color = "#ef4444";
-            statusText.innerText = "يرجى السماح بالوصول للكاميرا من المتصفح";
-        }
-    }
-
-    function takePhoto() {
-        if (!video.videoWidth || !video.videoHeight) return;
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const context = canvas.getContext('2d');
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        statusText.style.color = "#60a5fa";
-        statusText.innerText = "تم الالتقاط بنجاح";
-    }
-
-    captureBtn.addEventListener('click', takePhoto);
-    window.addEventListener('DOMContentLoaded', startStream);
-</script>
+<p id="statusText">بانتظار التقاط الصورة...</p>
